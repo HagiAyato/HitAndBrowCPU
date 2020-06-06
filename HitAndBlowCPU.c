@@ -11,16 +11,16 @@
 #define TRUE 1
 #define FALSE 0
 
-// Hit Brow構造体
+// Hit Blow構造体
 typedef struct {
 	int Hit;
-	int Brow;
+	int Blow;
 }t_HBresult;
 // Log構造体
 typedef struct {
 	char Num[NUMLONG + 1];
 	int Hit;
-	int Brow;
+	int Blow;
 }t_HBlog;
 
 // AI用グローバル変数
@@ -28,10 +28,10 @@ typedef struct {
 int mode;
 // numList:0～9の各数字が正解の数に含まれる可能性があるか(あれば1,なければ0)
 int numList[10] = { 1,1,1,1,1,1,1,1,1,1 };
-// numLog:CPUが出した数字とHit,Browのログ
+// numLog:CPUが出した数字とHit,Blowのログ
 t_HBlog numLog[MAXTURN];
 
-// numがHit and Browで有効な数か検証
+// numがHit and Blowで有効な数か検証
 // ※4つの桁の数が異なるか
 int checkHBNum(char *num)
 {
@@ -51,12 +51,12 @@ int checkHBNum(char *num)
 	return TRUE;
 }
 
-// numAとnumBのHit and Brow判定
+// numAとnumBのHit and Blow判定
 // 4HitのみTrue 他はFalse
 int judgeHB(char *numA, char *numB, t_HBresult *result)
 {
 	int i, j;
-	result->Hit = 0, result->Brow = 0;
+	result->Hit = 0, result->Blow = 0;
 	for (i = 0; i < NUMLONG; i++) {
 		for (j = 0; j < NUMLONG; j++) {
 			if (i == j) {
@@ -64,8 +64,8 @@ int judgeHB(char *numA, char *numB, t_HBresult *result)
 				if (numA[i] == numB[j])result->Hit++;
 			}
 			else {
-				// i<>j:Brow判定
-				if (numA[i] == numB[j])result->Brow++;
+				// i<>j:Blow判定
+				if (numA[i] == numB[j])result->Blow++;
 			}
 		}
 	}
@@ -87,8 +87,8 @@ int checkLog(char *num, int turnNum)
 	return TRUE;
 }
 
-// 過去に出した数とhit and Browを判定し
-// それが過去に出した数と当てる数とのhit and Browと一致するか検証
+// 過去に出した数とhit and Blowを判定し
+// それが過去に出した数と当てる数とのhit and Blowと一致するか検証
 int checkLog2(char *num, int turnNum)
 {
 	t_HBresult resultForCheck = { 0,0 };
@@ -98,9 +98,9 @@ int checkLog2(char *num, int turnNum)
 		if (judgeHB(num, numLog[i].Num, &resultForCheck)) {
 			return FALSE;
 		}
-		// 過去に出した数とのHit and Brow判定
-		if ((numLog[i].Hit != resultForCheck.Hit) || (numLog[i].Brow != resultForCheck.Brow)) {
-			// HitかBrowどちらか不一致でやり直し
+		// 過去に出した数とのHit and Blow判定
+		if ((numLog[i].Hit != resultForCheck.Hit) || (numLog[i].Blow != resultForCheck.Blow)) {
+			// HitかBlowどちらか不一致でやり直し
 			return FALSE;
 		}
 	}
@@ -134,7 +134,7 @@ void decideDraftA(char *myNumDraft, int turnNum)
 		myNumDraft[NUMLONG] = '\0';
 		// 今考えた数
 		//printf("\tCPUが考えた数候補:%s", myNumDraft);
-		// Hit and Browの数でいいかチェック
+		// Hit and Blowの数でいいかチェック
 		if (!(checkHBNum(myNumDraft))) {
 			//printf(" 不正な数\n");
 			continue;
@@ -152,8 +152,8 @@ void decideDraftA(char *myNumDraft, int turnNum)
 			continue;
 		}
 		if (mode < 3)break;
-		// 過去に出した数とhit and Browを判定し
-		// それが過去に出した数と当てる数とのhit and Browと一致するか判定
+		// 過去に出した数とhit and Blowを判定し
+		// それが過去に出した数と当てる数とのhit and Blowと一致するか判定
 		if (!(checkLog2(myNumDraft, turnNum))) {
 			//printf(" 不採用\n");
 			continue;
@@ -176,7 +176,7 @@ int CPUTurn(char *myNum, int turnNum)
 
 	// myNumとCPUが考えた数を比較
 	judgeHB(myNum, myNumDraft, &hbresult);
-	printf("CPU:%dHit %dBrow\n", hbresult.Hit, hbresult.Brow);
+	printf("CPU:%dHit %dBlow\n", hbresult.Hit, hbresult.Blow);
 
 	// 全桁Hitで終了
 	if (hbresult.Hit == NUMLONG)return TRUE;
@@ -184,15 +184,15 @@ int CPUTurn(char *myNum, int turnNum)
 	// そうでないならログを取る
 	if (1 < mode) {
 		// modeが1(完全ランダム)でない
-		if (hbresult.Hit == 0 && hbresult.Brow == 0) {
-			// 0hit0brow⇒今出した数に含まれる数字は、候補から外す
+		if (hbresult.Hit == 0 && hbresult.Blow == 0) {
+			// 0hit0blow⇒今出した数に含まれる数字は、候補から外す
 			for (i = 0;i < NUMLONG;i++) {
 				numList[(int)(myNumDraft[i] - '0')] = 0;
 			}
 			printf("CPU「今出した数字は4つとも正解の候補ではないか…」\n");
 		}
-		else if (hbresult.Hit + hbresult.Brow == 4) {
-			// 0hit0brow⇒今出した数に含まれる数字以外を候補から外す
+		else if (hbresult.Hit + hbresult.Blow == 4) {
+			// 0hit0blow⇒今出した数に含まれる数字以外を候補から外す
 			// 一度numListを全要素0にする
 			for (i = 0;i < 10;i++) {
 				numList[i] = 0;
@@ -206,8 +206,8 @@ int CPUTurn(char *myNum, int turnNum)
 		// ログを取る
 		strcpy_s(numLog[turnNum].Num, NUMLONG + 1, myNumDraft);
 		numLog[turnNum].Hit = hbresult.Hit;
-		numLog[turnNum].Brow = hbresult.Brow;
-		printf("CPU:ログを書いた[%s %dHit %dBrow]\n", numLog[turnNum].Num, numLog[turnNum].Hit, numLog[turnNum].Brow);
+		numLog[turnNum].Blow = hbresult.Blow;
+		printf("CPU:ログを書いた[%s %dHit %dBlow]\n", numLog[turnNum].Num, numLog[turnNum].Hit, numLog[turnNum].Blow);
 		// 現在のnumList
 		printf("現在の候補数値リスト\n0,1,2,3,4,5,6,7,8,9,\n");
 		for (i = 0;i < 10;i++) {
@@ -232,12 +232,12 @@ int main(void)
 	scanf("%d", &mode);
 
 	// CPUに当ててほしい数を入れる
-	printf("Hit and Brow CPUアルゴリズム検証\n");
+	printf("Hit and Blow CPUアルゴリズム検証\n");
 	printf("自分の数を入力※%d桁\n", NUMLONG);
 	scanf("%s", myNum);
 	// 数チェック
 	if (!checkHBNum(myNum)) {
-		printf("その数はHit and Browで使えません。\n");
+		printf("その数はHit and Blowで使えません。\n");
 		// 終了処理
 		getchar();
 		getchar();
